@@ -8,6 +8,7 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        ca-certificates \
         fonts-dejavu-core \
         libharfbuzz-subset0 \
         libjpeg62-turbo \
@@ -15,6 +16,9 @@ RUN apt-get update \
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
     && rm -rf /var/lib/apt/lists/*
+
+COPY certs /usr/local/share/ca-certificates/russian-trusted
+RUN update-ca-certificates
 
 COPY requirements.txt ./
 RUN pip install --upgrade pip && pip install -r requirements.txt

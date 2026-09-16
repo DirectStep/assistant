@@ -251,6 +251,8 @@ docker compose -f docker-compose.prod.yml logs --tail=100 backend
 - `LLM_PROVIDER` — активный провайдер: `openai` или `gigachat`.
 - `GIGACHAT_AUTH_KEY` — Authorization Key проекта GigaChat API; access token обновляется автоматически.
 - `GIGACHAT_SCOPE`, `GIGACHAT_TASK_MODEL`, `GIGACHAT_NEWS_MODEL` — тариф и модели GigaChat.
+- Официальные сертификаты НУЦ Минцифры устанавливаются в backend-образ при сборке;
+  TLS-проверка GigaChat в production не отключается.
 - `OPENAI_API_KEY` — ключ запасного OpenAI-провайдера.
 - `OPENAI_TASK_MODEL`, `OPENAI_TRANSCRIPTION_MODEL`, `OPENAI_NEWS_MODEL` — модели для извлечения задач, voice и обработки новостей.
 - `NEWS_MAX_ARTICLES` — целевое количество материалов в ежедневной сводке.
