@@ -1,0 +1,83 @@
+name: personal-assistant
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-assistant}
+      POSTGRES_USER: ${POSTGRES_USER:-assistant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assistant}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-assistant} -d ${POSTGRES_DB:-assistant}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-assistant}
+      POSTGRES_USER: ${POSTGRES_USER:-assistant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assistant}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      OWNER_TELEGRAM_ID: ${OWNER_TELEGRAM_ID:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_TASK_MODEL: ${OPENAI_TASK_MODEL:-gpt-5-mini}
+      OPENAI_TRANSCRIPTION_MODEL: ${OPENAI_TRANSCRIPTION_MODEL:-gpt-4o-mini-transcribe}
+      OPENAI_NEWS_MODEL: ${OPENAI_NEWS_MODEL:-gpt-5-mini}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      WEBAPP_URL: ${WEBAPP_URL:-http://localhost:5173}
+      TIMEZONE: ${TIMEZONE:-Europe/Moscow}
+      DAILY_DIGEST_TIME: ${DAILY_DIGEST_TIME:-08:30}
+      BOT_MODE: ${BOT_MODE:-polling}
+      BOT_ALLOW_ALL_USERS: ${BOT_ALLOW_ALL_USERS:-false}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      DEV_AUTH: ${DEV_AUTH:-false}
+      DEV_TELEGRAM_USER_ID: ${DEV_TELEGRAM_USER_ID:-}
+      NEWS_MAX_ARTICLES: ${NEWS_MAX_ARTICLES:-10}
+      DIGEST_OUTPUT_DIR: ${DIGEST_OUTPUT_DIR:-digests}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_ENV: ${APP_ENV:-development}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: development
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  frontend_node_modules:

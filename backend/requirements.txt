@@ -1,0 +1,16 @@
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+SQLAlchemy==2.0.43
+asyncpg==0.30.0
+alembic==1.16.5
+pydantic==2.11.7
+pydantic-settings==2.10.1
+aiogram==3.31.0
+APScheduler==3.11.0
+feedparser==6.0.12
+httpx==0.28.1
+Jinja2==3.1.6
+reportlab==4.4.4
+tzdata==2026.4
+WeasyPrint==66.0
+openai==3.13.0
