@@ -234,6 +234,8 @@ docker compose -f docker-compose.prod.yml logs --tail=100 backend
 - `OWNER_TELEGRAM_ID` — единственный разрешённый Telegram user ID.
 - `BOT_ALLOW_ALL_USERS` — опасный тестовый режим без owner-фильтра; по умолчанию `false`.
 - `TELEGRAM_BOT_TOKEN` — токен BotFather; хранится только в `.env`.
+- `TELEGRAM_API_IP` — необязательный доступный IP Telegram Bot API для VPS, где
+  стандартный DNS возвращает недоступный edge; имя `api.telegram.org` сохраняется для TLS.
 - `BOT_MODE` — `polling` локально или `webhook` на VPS.
 - `TELEGRAM_WEBHOOK_SECRET` — секрет проверки production webhook.
 - `DEV_AUTH`, `DEV_TELEGRAM_USER_ID` — только локальный обход Telegram initData; в production запрещён.

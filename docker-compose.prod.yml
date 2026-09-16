@@ -35,6 +35,10 @@ services:
         condition: service_healthy
     volumes:
       - digest_files:/app/digests
+    # Some Russian hosting networks resolve Telegram to an unreachable edge.
+    # Keep the endpoint configurable while preserving api.telegram.org for TLS.
+    extra_hosts:
+      - "api.telegram.org:${TELEGRAM_API_IP:-149.154.167.220}"
     expose:
       - "8000"
     healthcheck:
