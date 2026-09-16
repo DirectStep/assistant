@@ -16,7 +16,7 @@ from app.core.config import Settings, get_settings
 from app.core.database import engine
 from app.core.logging import configure_logging
 from app.jobs.scheduler import create_scheduler
-from app.services.llm_service import LLMService
+from app.services.ai_service import AIService
 
 settings = get_settings()
 configure_logging(settings.log_level)
@@ -111,7 +111,7 @@ async def shutdown_polling(
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     logger.info("Application started")
     bot: Bot | None = None
-    llm_service: LLMService | None = None
+    llm_service: AIService | None = None
     dispatcher: Dispatcher | None = None
     telegram_task: asyncio.Task[None] | None = None
     scheduler: AsyncIOScheduler | None = None
@@ -130,7 +130,7 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
             application.state.telegram_bot = bot
             application.state.telegram_dispatcher = dispatcher
             configured_llm = dispatcher["llm_service"]
-            if isinstance(configured_llm, LLMService):
+            if configured_llm is not None:
                 llm_service = configured_llm
             if settings.bot_mode == "polling":
                 telegram_task = asyncio.create_task(

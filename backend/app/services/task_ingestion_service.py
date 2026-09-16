@@ -79,5 +79,5 @@ class TaskIngestionService:
 
     async def transcribe_voice(self, audio_path: Path) -> str:
         if self.ai is None:
-            raise TranscriptionUnavailableError("OPENAI_API_KEY is not configured")
+            raise TranscriptionUnavailableError("AI provider is not configured")
         return await self.ai.transcribe_voice(audio_path)

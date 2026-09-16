@@ -5,7 +5,7 @@ from app.bot.handlers import create_task_router
 from app.bot.middlewares import DatabaseSessionMiddleware, OwnerOnlyMiddleware
 from app.core.config import Settings
 from app.core.database import async_session_factory
-from app.services.llm_service import LLMService
+from app.services.ai_service import create_ai_service
 from app.services.task_ingestion_service import TaskIngestionService
 
 
@@ -46,16 +46,7 @@ def create_dispatcher(settings: Settings) -> Dispatcher:
 
     dispatcher = Dispatcher()
     dispatcher["settings"] = settings
-    llm_service = (
-        LLMService(
-            settings.openai_api_key,
-            settings.openai_task_model,
-            settings.openai_transcription_model,
-            settings.openai_news_model,
-        )
-        if settings.openai_api_key
-        else None
-    )
+    llm_service = create_ai_service(settings)
     dispatcher["llm_service"] = llm_service
     dispatcher["task_ingestion_service"] = TaskIngestionService(llm_service, settings.timezone)
 

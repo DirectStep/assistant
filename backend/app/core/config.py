@@ -31,10 +31,18 @@ class Settings(BaseSettings):
 
     telegram_bot_token: str | None = None
     owner_telegram_id: int | None = Field(default=None, gt=0)
+    llm_provider: Literal["openai", "gigachat"] = "openai"
     openai_api_key: str | None = None
     openai_task_model: str = "gpt-5-mini"
     openai_transcription_model: str = "gpt-4o-mini-transcribe"
     openai_news_model: str = "gpt-5-mini"
+    gigachat_auth_key: str | None = None
+    gigachat_scope: Literal[
+        "GIGACHAT_API_PERS", "GIGACHAT_API_B2B", "GIGACHAT_API_CORP"
+    ] = "GIGACHAT_API_PERS"
+    gigachat_task_model: str = "GigaChat-2"
+    gigachat_news_model: str = "GigaChat-2-Pro"
+    gigachat_verify_ssl: bool = True
     app_base_url: str = "http://localhost:8080"
     webapp_url: str = "http://localhost:5173"
     bot_mode: Literal["polling", "webhook"] = "polling"
@@ -53,6 +61,7 @@ class Settings(BaseSettings):
     @field_validator(
         "telegram_bot_token",
         "openai_api_key",
+        "gigachat_auth_key",
         "telegram_webhook_secret",
         mode="before",
     )
@@ -120,6 +129,8 @@ class Settings(BaseSettings):
             raise ValueError("OWNER_TELEGRAM_ID is required in production")
         if self.app_env == "production" and self.dev_auth:
             raise ValueError("DEV_AUTH cannot be enabled in production")
+        if self.llm_provider == "gigachat" and not self.gigachat_auth_key:
+            raise ValueError("GIGACHAT_AUTH_KEY is required when LLM_PROVIDER=gigachat")
         if self.app_env == "production" and self.bot_allow_all_users:
             raise ValueError("BOT_ALLOW_ALL_USERS cannot be enabled in production")
         if self.app_env == "production" and not self.webapp_url.startswith("https://"):

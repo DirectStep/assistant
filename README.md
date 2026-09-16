@@ -35,9 +35,13 @@ Backend-контейнер автоматически выполняет `alembi
 
 Если заданы `TELEGRAM_BOT_TOKEN` и `OWNER_TELEGRAM_ID`, backend одновременно запускает бота через polling. Доступны команды `/start`, `/tasks`, `/today`, `/news`, `/app`, `/help`; текст, forwarded message и voice создают задачи. После создания задачу можно завершить или удалить inline-кнопкой.
 
-`OPENAI_API_KEY` включает structured extraction дедлайна/важности и voice transcription. Без ключа текст и forwarded message всё равно сохраняются как есть, а для voice бот возвращает короткое сообщение о недоступной транскрипции.
+AI-провайдер выбирается через `LLM_PROVIDER=openai|gigachat`. Оба варианта включают
+извлечение дедлайна/важности, обработку новостей и voice transcription. Без ключа выбранного
+провайдера текст и forwarded message всё равно сохраняются как есть.
 
-`POST /api/digests/generate` собирает реальные статьи за последние 24 часа, удаляет дубли, ранжирует их и сохраняет одну сводку на текущую дату. Без `OPENAI_API_KEY` используются заголовки/описания источников и локальный ranking; с ключом включаются structured relevance и summaries.
+`POST /api/digests/generate` собирает реальные статьи за последние 24 часа, удаляет дубли,
+ранжирует их и сохраняет одну сводку на текущую дату. Без настроенного AI-провайдера
+используются заголовки/описания источников и локальный ranking.
 
 После успешной генерации PDF сохраняется в `DIGEST_OUTPUT_DIR` под именем `daily_digest_YYYY-MM-DD.pdf`. Скачать существующий файл можно через защищённый `GET /api/digests/{date}/pdf`. В production-контейнере PDF собирает Jinja2 + WeasyPrint; при нативном запуске на Windows без GTK автоматически используется локальный ReportLab fallback.
 
@@ -112,7 +116,11 @@ cp .env.example .env
 TELEGRAM_BOT_TOKEN=новый_токен_BotFather
 OWNER_TELEGRAM_ID=ваш_числовой_id
 POSTGRES_PASSWORD=длинный_случайный_пароль
-OPENAI_API_KEY=ключ_OpenAI_или_пусто
+LLM_PROVIDER=gigachat
+GIGACHAT_AUTH_KEY=authorization_key_из_кабинета_GigaChat_API
+GIGACHAT_SCOPE=GIGACHAT_API_PERS
+GIGACHAT_TASK_MODEL=GigaChat-2
+GIGACHAT_NEWS_MODEL=GigaChat-2-Pro
 APP_BASE_URL=https://assistant.example.com
 WEBAPP_URL=https://assistant.example.com
 BOT_MODE=webhook
@@ -126,7 +134,8 @@ DAILY_DIGEST_TIME=08:30
 NEWS_MAX_ARTICLES=10
 ```
 
-Без `OPENAI_API_KEY` текстовые задачи, RSS, локальное ранжирование, PDF и Mini App работают. Voice transcription и качественные structured summaries требуют ключ.
+Без ключа выбранного AI-провайдера текстовые задачи, RSS, локальное ранжирование, PDF и
+Mini App работают. Voice transcription и качественные structured summaries требуют ключ.
 
 ## PostgreSQL и миграции
 
@@ -218,7 +227,7 @@ docker compose -f docker-compose.prod.yml logs --tail=100 backend
 
 - Один владелец и один встроенный scheduler.
 - RSS/Atom зависят от доступности источников; сайты без нормального feed не скрапятся.
-- Без OpenAI используются исходные описания и локальная оценка релевантности.
+- Без настроенного AI-провайдера используются исходные описания и локальная оценка релевантности.
 - Нет календаря, проектов, тегов, recurring tasks, командной работы и полноценного news reader.
 - Временный HTTPS tunnel не заменяет VPS с постоянным доменом.
 
@@ -239,7 +248,10 @@ docker compose -f docker-compose.prod.yml logs --tail=100 backend
 - `BOT_MODE` — `polling` локально или `webhook` на VPS.
 - `TELEGRAM_WEBHOOK_SECRET` — секрет проверки production webhook.
 - `DEV_AUTH`, `DEV_TELEGRAM_USER_ID` — только локальный обход Telegram initData; в production запрещён.
-- `OPENAI_API_KEY` — извлечение дедлайнов/важности и транскрипция voice.
+- `LLM_PROVIDER` — активный провайдер: `openai` или `gigachat`.
+- `GIGACHAT_AUTH_KEY` — Authorization Key проекта GigaChat API; access token обновляется автоматически.
+- `GIGACHAT_SCOPE`, `GIGACHAT_TASK_MODEL`, `GIGACHAT_NEWS_MODEL` — тариф и модели GigaChat.
+- `OPENAI_API_KEY` — ключ запасного OpenAI-провайдера.
 - `OPENAI_TASK_MODEL`, `OPENAI_TRANSCRIPTION_MODEL`, `OPENAI_NEWS_MODEL` — модели для извлечения задач, voice и обработки новостей.
 - `NEWS_MAX_ARTICLES` — целевое количество материалов в ежедневной сводке.
 - `DIGEST_OUTPUT_DIR` — каталог постоянного хранения PDF-файлов.
